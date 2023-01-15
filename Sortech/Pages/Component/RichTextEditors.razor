@@ -1,0 +1,92 @@
+﻿@page "/Component/RichTextEditors"
+
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.RichTextEditor
+
+<h3>Remainings</h3>
+@*
+    -RichTextEditor
+     RichTextEditorToolbarSettings : 도구 모음 구성
+     RichTextEditorQuickToolbarSettings : SfRichTextEditor 에서 빠른 도구 모음 설정을 구성하는 데 사용
+      
+*@
+<h5>RichTextEditor</h5>
+<SfRichTextEditor>
+    <RichTextEditorToolbarSettings Items="@Tools" />
+    <RichTextEditorQuickToolbarSettings Image="@Image" Link="@Link" />
+    <p>Rich Text Editor allows to insert images from online source as well as local computer where you want to insert the image in your content.</p>
+    <p><b>Get started Quick Toolbar to click on the image</b></p>
+    <p>It is possible to add custom style on the selected image inside the Rich Text Editor through quick toolbar.</p>
+
+    <img alt='Logo' style='width: 500px; height: 300px; transform: rotate(0deg);' src='https://imgnews.pstatic.net/image/421/2022/12/28/0006545481_001_20221228151601556.jpg?type=w647' />
+
+
+</SfRichTextEditor>
+
+<hr />
+<h5>DatePicker</h5>
+
+
+<hr />
+<h5>TimePicker</h5>
+
+
+@code {
+    private List<ToolbarItemModel> Tools = new List<ToolbarItemModel>()
+    {
+        new ToolbarItemModel() { Command = ToolbarCommand.Bold },
+        new ToolbarItemModel() { Command = ToolbarCommand.Italic },
+        new ToolbarItemModel() { Command = ToolbarCommand.Underline },
+        new ToolbarItemModel() { Command = ToolbarCommand.StrikeThrough },
+        new ToolbarItemModel() { Command = ToolbarCommand.FontName },
+        new ToolbarItemModel() { Command = ToolbarCommand.FontSize },
+        new ToolbarItemModel() { Command = ToolbarCommand.Separator },
+        new ToolbarItemModel() { Command = ToolbarCommand.FontColor },
+        new ToolbarItemModel() { Command = ToolbarCommand.BackgroundColor },
+        new ToolbarItemModel() { Command = ToolbarCommand.Formats },
+        new ToolbarItemModel() { Command = ToolbarCommand.Alignments },
+        new ToolbarItemModel() { Command = ToolbarCommand.LowerCase },
+        new ToolbarItemModel() { Command = ToolbarCommand.UpperCase },
+        new ToolbarItemModel() { Command = ToolbarCommand.SuperScript },
+        new ToolbarItemModel() { Command = ToolbarCommand.SubScript },
+        new ToolbarItemModel() { Command = ToolbarCommand.OrderedList },
+        new ToolbarItemModel() { Command = ToolbarCommand.UnorderedList },
+        new ToolbarItemModel() { Command = ToolbarCommand.Outdent },
+        new ToolbarItemModel() { Command = ToolbarCommand.Indent },
+        new ToolbarItemModel() { Command = ToolbarCommand.CreateLink },
+        new ToolbarItemModel() { Command = ToolbarCommand.RemoveLink },
+        new ToolbarItemModel() { Command = ToolbarCommand.Image },
+        new ToolbarItemModel() { Command = ToolbarCommand.CreateTable },
+        new ToolbarItemModel() { Command = ToolbarCommand.ClearFormat },
+        new ToolbarItemModel() { Command = ToolbarCommand.Print },
+        new ToolbarItemModel() { Command = ToolbarCommand.SourceCode },
+        new ToolbarItemModel() { Command = ToolbarCommand.FullScreen },
+        new ToolbarItemModel() { Command = ToolbarCommand.Undo },
+        new ToolbarItemModel() { Command = ToolbarCommand.Redo },
+        new ToolbarItemModel() { Command = ToolbarCommand.NumberFormatList },
+        new ToolbarItemModel() { Command = ToolbarCommand.BulletFormatList },
+        new ToolbarItemModel() { Command = ToolbarCommand.Audio },
+        new ToolbarItemModel() { Command = ToolbarCommand.Video }
+    };
+
+    private List<ImageToolbarItemModel> Image = new List<ImageToolbarItemModel>()
+    {
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Replace },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Align },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Caption },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Remove },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.OpenImageLink },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.HorizontalSeparator },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.EditImageLink },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.RemoveImageLink },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Display },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.AltText },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Dimension }
+    };
+    private List<LinkToolbarItemModel> Link = new List<LinkToolbarItemModel>()
+    {
+        new LinkToolbarItemModel() { Command = LinkToolbarCommand.Open },
+        new LinkToolbarItemModel() { Command = LinkToolbarCommand.Edit },
+        new LinkToolbarItemModel() { Command = LinkToolbarCommand.UnLink }
+    };
+}

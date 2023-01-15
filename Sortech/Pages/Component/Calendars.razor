@@ -1,0 +1,49 @@
+﻿@page "/Component/Calendars"
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Calendars
+
+<h3>Calendars</h3>
+
+@*
+    -DatePicker : 날짜
+        DateTime을 사용, Min 최소 날짜를 설정, Max최대 날짜를 설정, DateValue는 날짜 지정?!
+        Format='yyyy-MM-dd' : 속성을 지정, 
+        EnableMask="true" : 키보드 방향키로 날짜를 변경가능
+
+    -TimePicker : 시간
+        DateTime을 사용, Step : 60분으로 지정
+*@
+
+@*<SfDatePicker TValue="DateTime?" Min='@MinDate' Max='@MaxDate' Value='@DateValue' width="60%"></SfDatePicker>*@
+
+@*<SfDatePicker TValue="DateTime?" Value='@DateValue' Format='yyyy-MM-dd' width="60%"></SfDatePicker>*@
+
+@*<SfTimePicker TValue="DateTime?" Value="@TimeValue" Step=60 Format="HH:mm"></SfTimePicker>*@
+
+@*<SfTimePicker TValue="DateTime?" Value='@TimeValue' Min='@MinVal' Max='@MaxVal'></SfTimePicker>*@
+
+@*<SfDatePicker TValue="DateTime?" EnableMask="true" @bind-Value="@Value">
+    <DatePickerMaskPlaceholder Day="day" Month="month" Year="year"></DatePickerMaskPlaceholder>
+</SfDatePicker>*@
+
+<SfTimePicker TValue="DateTime?" EnableMask="true" Format="hh:mm:ss" StrictMode=false @bind-Value="@Value">
+    <TimePickerMaskPlaceholder Hour="hour" Minute="minute" Second="second"></TimePickerMaskPlaceholder>
+</SfTimePicker>
+
+@code {
+    //public DateTime MinDate {get;set;} = new DateTime(DateTime.Now.Year,DateTime.Now.Month,03);
+    //public DateTime MaxDate {get;set;} = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 27);
+    //public DateTime? DateValue {get;set;} = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 15);
+    
+   //public DateTime? DateValue {get;set;} = DateTime.Now; //현재 날짜를 나타냄
+
+    //public DateTime TimeValue { get; set; } = DateTime.Now;
+    
+    //public DateTime MinVal { get; set; } = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 15, 09, 00, 00);
+    //public DateTime MaxVal { get; set; } = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 15, 11, 30, 00);
+    //public DateTime? TimeValue { get; set; } = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 15, 11, 00, 00);
+    
+    //public DateTime? Value { get; set; } = new DateTime(2023, 01, 01);
+
+    public DateTime? Value { get; set; } = new DateTime(2023, 01, 01, 01, 11, 11);
+}

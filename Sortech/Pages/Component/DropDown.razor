@@ -1,0 +1,247 @@
+﻿@page "/Component/DropDown"
+
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.DropDowns
+@using System.IO
+
+<h2>DropDownTest</h2>
+
+
+<h3>자동완성</h3>
+<SfAutoComplete TValue="string" TItem="Country" Placeholder="e.g. Australia" DataSource="@LocalData" Width="40%" Highlight="@Highlight">
+    <AutoCompleteFieldSettings Value="Name" />
+</SfAutoComplete>
+
+@code {
+    public class Country
+    {
+        public string Name { get; set; }
+        public string Code { get; set; }
+    }
+
+    List<Country> LocalData = new List<Country> {
+        new Country() { Name = "Australia", Code = "AU" },
+        new Country() { Name = "Bermuda", Code = "BM" },
+        new Country() { Name = "Canada", Code = "CA" },
+        new Country() { Name = "Cameroon", Code = "CM" },
+        new Country() { Name = "Denmark", Code = "DK" },
+        new Country() { Name = "France", Code = "FR" },
+        new Country() { Name = "Finland", Code = "FI" },
+        new Country() { Name = "Germany", Code = "DE" },
+        new Country() { Name = "Greenland", Code = "GL" },
+        new Country() { Name = "Hong Kong", Code = "HK" },
+        new Country() { Name = "India", Code = "IN" },
+        new Country() { Name = "Italy", Code = "IT" },
+        new Country() { Name = "Japan", Code = "JP" },
+        new Country() { Name = "Korea", Code = "KR" },
+        new Country() { Name = "Mexico", Code = "MX" },
+        new Country() { Name = "Norway", Code = "NO" },
+        new Country() { Name = "Poland", Code = "PL" },
+        new Country() { Name = "Switzerland", Code = "CH" },
+        new Country() { Name = "United Kingdom", Code = "GB" },
+        new Country() { Name = "United States", Code = "US" },
+    };
+
+    public bool Highlight { get; set; } = true;
+}
+
+<hr />
+
+<h3>체크박스 선택</h3>
+
+<SfListBox TValue="string[]" DataSource="@Noodles" TItem="NoodleData">
+    <ListBoxFieldSettings Text="Brand" Value="Item" />
+    <ListBoxSelectionSettings ShowCheckbox="true" ShowSelectAll="true"></ListBoxSelectionSettings>
+</SfListBox>
+
+@code {
+    public List<NoodleData> Noodles = new List<NoodleData>
+    {
+        new NoodleData { Brand = "NONGSHIM", Item = "ShinRamyun" },
+        new NoodleData { Brand = "SAMYANG", Item = "SamyangRamyun" },
+        new NoodleData { Brand = "PALDO", Item = "PaldoBibimmyun" },
+        new NoodleData { Brand = "OTTUGI", Item = "JinRamyun" }        
+    };
+    public class NoodleData
+    {
+        public string Brand { get; set; }
+        public string Item { get; set; }
+    }
+}
+
+<hr />
+
+<h3>그룹화</h3>
+<SfListBox TValue="string[]" DataSource="@HambergerData" TItem="HambergerDetail">
+    <ListBoxFieldSettings GroupBy="Category" Text="Name" Value="Id" />
+</SfListBox>
+
+@code {
+    public List<HambergerDetail> HambergerData = new List<HambergerDetail> {
+       new HambergerDetail{ Name = "Big Mac", Category = "McDonald's", Id = "item1" },
+       new HambergerDetail{ Name = "McChicken", Category = "McDonald's", Id = "item2" },
+       new HambergerDetail{ Name = "McSpicy Shanghai Burger", Category = "McDonald's", Id = "item3" },
+       new HambergerDetail{ Name = "Korean Beef Bulgogi", Category = "LOTTERIA", Id = "item4" },
+       new HambergerDetail{ Name = "Shrimp Burger", Category = "LOTTERIA", Id = "item5" },
+       new HambergerDetail{ Name = "T-Rex", Category = "LOTTERIA", Id = "item6" },
+       new HambergerDetail{ Name = "Whopper Junior", Category = "BURGERKING", Id = "item7" },
+       new HambergerDetail{ Name = "Stacker 2 Whopper", Category = "BURGERKING", Id = "item8" },
+       new HambergerDetail{ Name = "Thigh Burger", Category = "MOMSTOUCH", Id = "item9" },
+       new HambergerDetail{ Name = "Deep Cheese Burger", Category = "MOMSTOUCH", Id = "item10" }
+    };
+
+    public class HambergerDetail
+    {
+        public string Name { get; set; }
+        public string Category { get; set; }
+        public string Id { get; set; }
+    }   
+    
+}
+
+<hr />
+
+<h3>콤보박스</h3>
+
+<SfComboBox TValue="string" TItem="EmployeeData" Placeholder="Select a customer" DataSource="@Data">
+    <ComboBoxTemplates TItem="EmployeeData">
+        <ItemTemplate>
+            <span class='item'><span class='name'>@((context as EmployeeData).FirstName)</span>
+            <span class='city'>@((context as EmployeeData).Country)</span></span>
+        </ItemTemplate>
+        <HeaderTemplate>
+            <span class='head'><span class='name'>Name</span>
+            <span class='city'>Country</span></span>
+        </HeaderTemplate>
+    </ComboBoxTemplates>
+    <ComboBoxFieldSettings Value="Country" Text="FirstName"></ComboBoxFieldSettings>
+</SfComboBox>
+
+@code {
+    public class EmployeeData
+    {
+        public string FirstName { get; set; }
+        public string Country { get; set; }
+    }
+
+    List<EmployeeData> Data = new List<EmployeeData>
+    {
+        new EmployeeData() { FirstName = "Andrew Fuller",  Country = "England" },
+        new EmployeeData() { FirstName = "Anne Dodsworth", Country = "USA" },
+        new EmployeeData() { FirstName = "Janet Leverling", Country = "USA" },
+        new EmployeeData() { FirstName = "Laura Callahan", Country = "USA"},
+        new EmployeeData() { FirstName = "Margaret Peacock", Country = "USA"},
+        new EmployeeData() { FirstName = "Michael Suyama", Country = "USA", },
+        new EmployeeData() { FirstName = "Nancy Davolio", Country = "USA"},
+        new EmployeeData() { FirstName = "Robert King", Country = "England"},
+        new EmployeeData() { FirstName = "Steven Buchanan", Country = "England"},
+    };
+}
+
+<style>
+    .head, .item {
+        display: table;
+        width: 100%;
+        margin: auto;
+    }
+
+    .head {
+        height: 40px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .name, .city {
+        display: table-cell;
+        vertical-align: middle;
+        width: 50%;
+    }
+
+    .head .name {
+        text-indent: 16px;
+    }
+
+</style>
+
+<hr />
+
+<h3>드롭다운</h3>
+<SfDropDownList @ref="ddlObj" AllowFiltering="true" TValue="Moc" TItem="Moc" DataSource="@data" CssClass="e-multi-column">
+    <DropDownListFieldSettings Text="Text" Value="ID"></DropDownListFieldSettings>
+    <DropDownListEvents Filtering="OnFiltering" TValue="Moc" TItem="Moc"></DropDownListEvents>
+    <DropDownListTemplates TItem="Moc">
+        <HeaderTemplate>
+            <table><tr><th>ID</th><th>Text</th></tr></table>
+        </HeaderTemplate>
+        <ItemTemplate Context="itemContext">
+            <table>
+                <tbody>
+                    <tr>
+                        @if (!string.IsNullOrEmpty((itemContext as Moc).ID))
+                        {
+                            <td><span>@((itemContext as Moc).ID)</span></td>
+                            <td><span>@((itemContext as Moc).Text)</span></td>
+                        }
+                    </tr>
+                </tbody>
+            </table>
+        </ItemTemplate>
+    </DropDownListTemplates>
+</SfDropDownList>
+
+@code {
+    SfDropDownList<Moc, Moc> ddlObj;
+    public Query query { get; set; }
+    public class Moc
+    {
+        public string ID { get; set; }
+        public string Text { get; set; }
+    }
+    List<Moc> data = new List<Moc>
+{
+      new Moc() { ID= "12H", Text= "American Football" },
+      new Moc() { ID= "14G", Text= "Badminton" },
+      new Moc() { ID= "17F", Text= "Basketball" }
+    };
+    public async Task OnFiltering(FilteringEventArgs args)
+    {
+        args.PreventDefaultAction = true;
+        var orWhere = WhereFilter.Or(new List<WhereFilter> {
+            new WhereFilter() { Field = "Text", Operator = "contains", value = args.Text, IgnoreCase = true },
+            new WhereFilter() { Field = "ID", Operator = "contains", value = args.Text, IgnoreCase = true }
+        });
+        var query = new Query().Where(orWhere);
+        query = !string.IsNullOrEmpty(args.Text) ? query : new Query();
+        await ddlObj.Filter(data, query);
+    }
+}
+
+<hr />
+
+<h3>다중 선택 드롭다운</h3>
+<SfMultiSelect TItem="GameFields" TValue="string[]" Mode="@VisualMode.CheckBox" ShowSelectAll="true" DataSource="@Games">
+    <MultiSelectEvents TItem="GameFields" TValue="string[]" SelectedAll="@SelectedAllhandler"></MultiSelectEvents>
+    <MultiSelectFieldSettings Text="Text" Value="ID"></MultiSelectFieldSettings>
+</SfMultiSelect>
+
+@code {
+    public class GameFields
+    {
+        public string ID { get; set; }
+        public string Text { get; set; }
+    }
+
+    private List<GameFields> Games = new List<GameFields>() {
+        new GameFields(){ ID= "Game1", Text= "American Football" },
+        new GameFields(){ ID= "Game2", Text= "Badminton" },
+        new GameFields(){ ID= "Game3", Text= "Basketball" },
+        new GameFields(){ ID= "Game4", Text= "Cricket" },
+     };
+
+    private void SelectedAllhandler(SelectAllEventArgs<GameFields> args)
+    {
+        // Here you can customize your code
+    }
+}
+
+<div style="height:200px"></div>

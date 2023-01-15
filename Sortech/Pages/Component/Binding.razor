@@ -1,0 +1,195 @@
+﻿@page "/Component/Binding"
+
+@using Syncfusion.Blazor.Calendars
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Buttons
+@inject SfDialogService DialogService
+
+<p>Binded value in TextBox is: <b>@textValue</b></p>
+
+@*이 이벤트는 요소가 포커스를 잃을 때 트리거*@
+<SfTextBox @bind-Value="textValue"></SfTextBox>
+
+@*RenderFragment를 이용하여 수동으로 Component 생성*@
+<p></p>
+<h3>동적 생성</h3>
+<SfButton ID="dynamic-button" Content="Render DatePicker" @onclick="RenderComponent"></SfButton>
+<div id="component-container">
+    @dynamicComponent
+</div>
+<h3>데이터 바인딩</h3>
+<SfButton ID="button" Content="Change Date" @onclick="onChange"></SfButton>
+<p></p>
+
+@code {
+    private string textValue { get; set; }
+
+    protected override void OnInitialized()
+    {
+        textValue = "Syncfusion Blazor";
+    }
+
+    public DateTime? DateValue { get; set; } = DateTime.Now.Date;
+    //수동으로 Component 생성
+    private RenderFragment dynamicComponent { get; set; }
+
+    private RenderFragment CreateComponent() => builder =>
+    {
+        builder.OpenComponent(0, typeof(SfDatePicker<DateTime>));
+        builder.AddAttribute(1, "ID", "MyDynamicId");
+        builder.AddAttribute(2, "Placeholder", "Choose a date");
+        //Binding the value property with DateValue property.
+        builder.AddAttribute(3, "Value", DateValue);
+        builder.AddAttribute(4, "onchange", Microsoft.AspNetCore.Components.EventCallback.Factory.
+                CreateBinder(this, _value => DateValue = _value, DateValue));
+
+        builder.CloseComponent();
+    };
+
+    private void RenderComponent()
+    {
+        dynamicComponent = CreateComponent();
+    }
+    private void onChange()
+    {
+        DateValue = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 07);
+    }
+}
+
+<div id="predefinedDialogCustomization">
+    <SfButton CssClass="e-warning" @onclick="@AlertBtn">Alert</SfButton>
+    <SfButton CssClass="e-success" @onclick="@ConfirmBtn">Confirm</SfButton>
+    <SfButton CssClass="e-primary" @onclick="@PromptBtn">Prompt</SfButton>
+    <span class="status">
+        @DialogStatus
+    </span>
+</div>
+
+@code {
+    private string DialogStatus { get; set; }
+    private string inputValue { get; set; }
+    private async Task AlertBtn()
+    {
+        this.DialogStatus = " ";
+        await DialogService.AlertAsync(null, " ", new DialogOptions()
+            {
+                PrimaryButtonOptions = new DialogButtonOptions { Content = "OK" },
+                ChildContent =@<table class="Table">
+    <tbody style="line-height: 2.0;">
+        <tr>
+            <td class="data">
+                <span class="circle-border"><span class="e-icons e-check" style="font-size: 30px; color: green; font-weight:700;"></span></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="data" style="font-size: 25px;"><b style="font-weight: 500 !important;">Good job!</b></td>
+        </tr>
+        <tr>
+            <td class="data">You clicked the button!</td>
+        </tr>
+    </tbody>
+</table>
+            });
+        this.DialogStatus = "The user closed the Alert dialog";
+    }
+    private async Task ConfirmBtn()
+    {
+        this.DialogStatus = " ";
+        bool isConfirm = await DialogService.ConfirmAsync(null, "Delete File", new DialogOptions()
+                {
+                    PrimaryButtonOptions = new DialogButtonOptions { Content = "YES" },
+                    CancelButtonOptions = new DialogButtonOptions { Content = "No" },
+                    ChildContent =
+    @<div>
+        <p><span class="e-icons e-changes-reject" style="float: left;padding-right: 10px;font-size: 25px;display: inline;"></span>Are you sure you want to permanently delete this file?</p>
+        <p class="fileEdit">
+            <span class="e-icons e-image" style="font-size: 60px;"></span><span>
+                failed personas.png<br />
+                Item type:PNG File<br />
+                Dimenstion: 1384 * 782<br />
+                Size:374 KB<br />
+                Original Location:C:\Users\Images
+            </span>
+        </p>
+    </div>
+            });
+        string confirmMessage = isConfirm ? "confirmed" : "canceled";
+        this.DialogStatus = $"The user {confirmMessage} the dialog box.";
+    }
+    private async Task PromptBtn()
+    {
+        this.DialogStatus = " ";
+        string promptText = await DialogService.PromptAsync(null, "Join Wi-Fi Network", new DialogOptions()
+                {
+                    ChildContent =
+        @<table class="Table">
+    <tbody style="line-height: 2.0;">
+        <tr><td>SSID: <b>AndroidAP</b></td></tr>
+        <tr><td>Password:</td></tr>
+        <tr><td><span class="e-input-group"><input type="password" id="password" @bind-value="inputValue" name="Required" class="e-input"></span></td></tr>
+    </tbody>
+</table>
+        });
+        this.DialogStatus = $"The user's input is returned as \"{inputValue}\".";
+    }
+    }
+<style>
+    .e-alert-dialog .e-footer-content {
+        display: flex;
+        justify-content: center;
+    }
+
+    #predefinedDialogCustomization {
+        margin: 25px 0 0 15px;
+    }
+
+        #predefinedDialogCustomization .status {
+            margin-top: 20px;
+            font-size: 16px;
+            display: block;
+        }
+
+        #predefinedDialogCustomization .e-btn {
+            margin-right: 5px;
+        }
+
+    .e-dlg-content .Table {
+        width: 100%;
+        height: 100%;
+    }
+
+    .fileEdit {
+        display: flex;
+        justify-content: space-evenly;
+        padding: 20px 0 0 50px;
+    }
+
+    .circle-border {
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        color: green;
+        width: 60px;
+        height: 60px;
+        border: 5px solid rgb(215,215,215);
+        border-radius: 50%;
+    }
+
+    .data {
+        display: flex;
+        justify-content: center;
+        /*padding-left: 32px;*/
+    }
+
+    .confirm {
+        display: flex;
+        justify-content: center;
+        padding-left: 55px;
+        padding-right: 20px;
+    }
+
+    button.e-btn.dlgbtn {
+        margin-top: 10px;
+    }
+</style>

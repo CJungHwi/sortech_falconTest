@@ -1,0 +1,235 @@
+﻿@page "/comm/MenuList_Maria"
+@*@using Microsoft.Data.SqlClient;*@
+@*@using MySql.Data.MySqlClient;*@
+@using MySqlConnector;
+@*@using Syncfusion.Blazor.DropDowns;
+@using Syncfusion.Blazor.Inputs;
+@using Syncfusion.Blazor;
+@using Syncfusion.Blazor.TreeGrid;*@
+@using Sortech.Common;
+@using Sortech.DBConn;
+@using Sortech.Model_MariaDB;
+@using System.Dynamic;
+@using System.Data;
+@using static Sortech.Common.CommonList;
+@inject IRepository_M_Menulist M_Menulist_service;
+
+@*
+    
+ParentIdMapping 관련 ParentMenuId 가 0 이면 에러.
+
+var inx =await TreeGrid.GetRowIndexByPrimaryKeyAsync(7);//get the index value
+
+Mariadb 를 개별적으로 실행시 MySql.Data.MySqlClient 가 아닌 MySqlConnector 를 사용해야 함.
+
+NullAble 값이면 TValue에도 ? 붙여야 함. --> TValue="int?"
+
+*@
+<style> 
+    .e-grid .e-headercell { 
+        background-color: gray; 
+    } 
+  
+    .e-headercell {         
+        color: white; 
+        font-size: 1.5rem; 
+        font-weight: bold; 
+    } 
+</style>
+
+<h3>메뉴관리</h3>
+
+<SfTreeGrid @ref="Menu_sfTree" DataSource="@menulist" IdMapping="MenuId" TValue="M_Menulist" ParentIdMapping="ParentMenuId" TreeColumnIndex="1" Toolbar="@ToolbarItems">
+    @*<TreeGridTemplates>
+        <RowTemplate>
+            <td style='padding-left:18px; border-bottom: 0.5px solid #e0e0e0;'>
+                <RowTemplateTreeColumn>
+                    @{
+                        var cntxt = context as M_Menulist;
+                        <div>@(cntxt.MenuId)</div>
+                    }
+                </RowTemplateTreeColumn>
+            </td>
+        </RowTemplate>
+    </TreeGridTemplates>*@
+    <TreeGridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="Syncfusion.Blazor.TreeGrid.EditMode.Dialog"></TreeGridEditSettings>
+    <TreeGridEvents OnActionBegin="ActionBeginHandler_menu" OnActionComplete="ActionCompleteHandler_menu" TValue="M_Menulist"></TreeGridEvents>
+    <TreeGridColumns>
+        <TreeGridColumn Field="MenuId" HeaderText="Menu ID" Width="100" HeaderTextAlign="TextAlign.Center" TextAlign="TextAlign.Right" IsPrimaryKey="true">
+            <EditTemplate>
+                <SfNumericTextBox ID="Menu_text" TValue="int" Placeholder="Menu ID" Enabled="@Enabled_MenuId" @bind-Value="@((context as M_Menulist).MenuId)" FloatLabelType="@Float"></SfNumericTextBox>
+            </EditTemplate>
+        </TreeGridColumn>
+        <TreeGridColumn Field="MenuName" HeaderText="메뉴이름" HeaderTextAlign="TextAlign.Center" TextAlign="TextAlign.Left" Width="200"></TreeGridColumn>
+        <TreeGridColumn Field="PageName" HeaderText="실행 페이지명" HeaderTextAlign="TextAlign.Center" TextAlign="TextAlign.Left" Width="145"></TreeGridColumn>
+        <TreeGridColumn Field="ParentMenuId" HeaderText="부모메뉴 ID" HeaderTextAlign="TextAlign.Center" TextAlign="TextAlign.Center" Width="145">
+            <EditTemplate>
+                <SfNumericTextBox ID="ParentMenu_text" Placeholder="부모메뉴 ID" TValue="int?" Enabled="@Enabled_ParentMenuId" @bind-Value="@((context as M_Menulist).ParentMenuId)" FloatLabelType="@Float"></SfNumericTextBox>
+            </EditTemplate>
+        </TreeGridColumn>
+        <TreeGridColumn Field="Menu_Type" HeaderText="메뉴 Type" HeaderTextAlign="TextAlign.Center" Width="200" TextAlign="TextAlign.Center" EditType="EditType.DropDownEdit">
+            <EditTemplate>
+                <SfDropDownList ID="Menu_Typedw" Placeholder="메뉴 Type" TValue="string" TItem="DwCodeval" Enabled="@Enabled_Menu_Type" @bind-Value="@((context as M_Menulist).Menu_Type)" DataSource="@_DropdownMenu_Type" FloatLabelType="@Float">
+                    <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </EditTemplate>
+        </TreeGridColumn>
+        <TreeGridColumn Field="Icon" HeaderText="Icon" HeaderTextAlign="TextAlign.Center" Width="200" TextAlign="TextAlign.Left"></TreeGridColumn>
+        <TreeGridColumn Field="User_yn" HeaderText="사용여부" HeaderTextAlign="TextAlign.Center" TextAlign="TextAlign.Center" Width="80" EditType="EditType.DropDownEdit">
+            <EditTemplate>
+                <SfDropDownList ID="User_yndw" Placeholder="사용여부" TValue="string" TItem="DwCodeval" Enabled="@Enabled_User_yn" @bind-Value="@((context as M_Menulist).User_yn)" DataSource="@_YNList" FloatLabelType="@Float">
+                    <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </EditTemplate>
+        </TreeGridColumn>
+        <TreeGridColumn Field="Sort_No" HeaderText="메뉴순번" HeaderTextAlign="TextAlign.Center" TextAlign="TextAlign.Right" Width="80"></TreeGridColumn>
+        <TreeGridColumn Field="Leaf_Yn" HeaderText="끝단여부" HeaderTextAlign="TextAlign.Center" TextAlign="TextAlign.Center" Width="100" EditType="EditType.DropDownEdit">
+            <EditTemplate>
+                <SfDropDownList ID="Leaf_Yndw" Placeholder="끝단여부" TValue="string" TItem="DwCodeval" Enabled="@Enabled_Leaf_Yn" @bind-Value="@((context as M_Menulist).Leaf_Yn)" DataSource="@_YNList" FloatLabelType="@Float">
+                    <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </EditTemplate>
+        </TreeGridColumn>
+    </TreeGridColumns>
+    </SfTreeGrid>
+
+@code {
+
+    public SfTreeGrid<M_Menulist>? Menu_sfTree;
+    CommonList commonList = new CommonList();
+
+    FloatLabelType Float = FloatLabelType.Always;
+
+    public string[] ToolbarItems = new string[] { "Add", "Edit", "Update", "Cancel"};
+
+    // 코드데이터 리스트
+    private IEnumerable<M_Menulist>? menulist { get; set; } // 메뉴리스트 그리드 사용
+
+    List<DwCodeval> _YNList;
+
+    List<DwCodeval> _DropdownMenu_Type { get; set; }
+
+    //컬럼 항목의 사용여부
+    public bool Enabled_Menu_Type = true;
+    public bool Enabled_MenuId = true;
+    public bool Enabled_User_yn = true;
+    public bool Enabled_ParentMenuId = true;
+    public bool Enabled_Leaf_Yn = true;
+
+    protected override void OnInitialized()
+    {
+        _YNList = commonList.CommDropdownYN();
+        menulist = M_Menulist_service.MenuCall_SQL().Take(30).ToList();
+
+        _DropdownMenu_Type = new List<DwCodeval>
+    {
+        new DwCodeval() { Name = "Folder", Code = "F" },
+        new DwCodeval() { Name = "Page", Code = "P" }
+    };
+    }
+
+    public void ActionBeginHandler_menu(ActionEventArgs<M_Menulist> args)
+    {
+        int idx;
+        dynamic rec;
+        // 기준정보에서 추가 했을때...
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Add))
+        {
+            DBConnection dbconn = new DBConnection("sortech_MARIADB");
+            using (MySqlConnection connection = new MySqlConnection(dbconn.ConnectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    string queryString = "SELECT Max(MenuId) + 1 AS MAXCODE FROM menulist";
+
+                    MySqlCommand comm = new MySqlCommand(queryString, connection);
+
+                    MySqlDataReader dr = comm.ExecuteReader();
+
+                    if(dr.HasRows)
+                    {
+                        dr.Read();
+                        args.Data.MenuId = Convert.ToInt32(dr["MAXCODE"]);
+                    }
+                }
+                catch (Exception se)
+                {
+                    Console.WriteLine(se.ToString());
+                    throw;
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            Enabled_MenuId = false;
+
+            idx = Convert.ToInt32(Menu_sfTree.SelectedRowIndex);
+
+            if (idx > -1)
+            {
+                rec = Menu_sfTree.GetCurrentViewRecords();
+
+                args.Data.ParentMenuId = rec[idx].MenuId;
+
+                //Enabled_ParentMenuId = false;
+            }
+
+            args.Data.Menu_Type = "P";
+
+            args.Data.User_yn = "Y";
+
+            args.Data.Leaf_Yn = "Y";
+
+            Enabled_User_yn = false;
+            Enabled_Leaf_Yn = false;
+        }
+
+        else if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.BeforeBeginEdit))
+        {
+            idx = Convert.ToInt32(Menu_sfTree.SelectedRowIndex);
+
+            if (idx > -1)
+            {
+                rec = Menu_sfTree.GetCurrentViewRecords();
+
+                if (rec[idx].MenuName == "Home")
+                    Enabled_ParentMenuId = false;
+                else
+                    Enabled_ParentMenuId = true;
+            }
+
+            Enabled_User_yn = true;
+            Enabled_Leaf_Yn = true;
+            Enabled_MenuId = false;
+        }
+
+        else if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save))
+        {
+            if (args.Action == "Add")
+                // EF 기본
+                //codeinfo_service.Insert(args.Data);
+                // EF 쿼리사용
+                M_Menulist_service.Insert_SQL(args.Data);
+            else if (args.Action == "Edit")
+                //codeinfo_service.Update(args.Data.CorpCd, args.Data.ManageCd, args.Data);
+                M_Menulist_service.Update_SQL(args.Data);
+        }
+        else if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Delete))
+            //codeinfo_service.Delete(args.Data.CorpCd, args.Data.ManageCd);
+            M_Menulist_service.Delete_SQL(args.Data);
+    }
+
+    //기준정보그룹의 ActionBeginHandler_group 실행 후 실행
+    //
+    public void ActionCompleteHandler_menu(ActionEventArgs<M_Menulist> args)
+    {
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save))
+        {
+            menulist = null;
+            menulist = M_Menulist_service.MenuCall_SQL();
+        }
+    }
+}

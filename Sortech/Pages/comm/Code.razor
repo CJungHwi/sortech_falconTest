@@ -1,0 +1,274 @@
+﻿@page "/comm/Code"
+@using Microsoft.Data.SqlClient
+@*@using Syncfusion.Blazor
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.QueryBuilder*@
+@using Sortech.Model_SqlServerDB
+@using Sortech.Common
+@using Sortech.DBConn
+@using System.Data
+@using System.Dynamic
+@using static Sortech.Common.CommonList
+@inject IRepository_CodeInfo codeinfo_service
+
+@*
+    DataSource : 가져온 데이터
+    AllowPaging : 페이징 기능 활성화
+    PageSize : 페이지 표시 수
+    AllowSorting : 소팅 기능 활성화
+    AllowFiltering : 필터링 기능 활성화
+    AllowGrouping : Grouping 기능 활성화
+    ShowColumnChooser : 열을 동적으로 표시/숨김 기능 활성화 ( * Toolbar=@ToolbarItems 와 code 단에 ToolbarItems 값 지정 )
+    AllowResizing : 컬럼 리사이즈
+    AllowReordering : 열 이동
+    ShowColumnMenu : 열 타이틀에 메뉴 표시
+
+    EditMode.Dialog 일때 lebel 표시 : FloatLabelType="Syncfusion.Blazor.Inputs.FloatLabelType.Always" 
+    (Placeholder 넣어야 나옴.)
+
+    https://blazor.syncfusion.com/documentation/datagrid/editing
+
+    https://blazor.syncfusion.com/documentation/datagrid/how-to/cascading-dropdownlist-with-grid-editing
+
+    그리드 이벤트
+    https://blazor.syncfusion.com/documentation/datagrid/events
+
+    Blazor DataGrid 구성 요소에서 드롭다운 목록이 있는 사용자 지정 도구 모음 만들기
+    https://blazor.syncfusion.com/documentation/datagrid/how-to/tool-bar-with-drop-down-list
+    Blazor 데이터 그리드 구성 요소에서 선택한 행 셀의 인덱스 값 가져오기
+    https://blazor.syncfusion.com/documentation/datagrid/how-to/rowcell-index
+*@
+
+<h3>기준정보</h3>
+
+<SfGrid @ref="code_grid" DataSource="@codes" AllowPaging="true" AllowSorting="true" AllowFiltering="false" AllowGrouping="false" ShowColumnChooser="true" Toolbar=@ToolbarItems
+        AllowResizing="true" AllowReordering="true" ShowColumnMenu="true">
+    <GridPageSettings PageSize="20"></GridPageSettings>
+    <GridEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" Mode="EditMode.Dialog">
+        @*<Template>
+            @{
+                var Order = (context as CCodeInfo_sql);
+                <div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <SfTextBox ID="CustCodeCd" Value="@getCodeCd" Enabled="false" TValue="string" FloatLabelType="FloatLabelType.Always"></SfTextBox>
+                            <SfTextBox ID="CustCodeCd" HtmlAttributes="@(new Dictionary<string, object>() { { "maxlength", 6 } })" Enabled="@Enabled_CodeCd" @bind-Value="@((context as CCodeInfo_sql).CodeCd)"></SfTextBox>
+                        </div>
+                    </div>
+                </div>
+            }
+        </Template>*@
+    </GridEditSettings>
+    <GridEvents OnActionBegin="ActionBeginHandler_code" OnActionComplete="ActionCompleteHandler_code" TValue="CCodeInfo_sql"></GridEvents>
+    <GridColumns>
+        <GridColumn Field="@nameof(CCodeInfo_sql.CorpNM)" HeaderText="사업장코드" EditType="EditType.DropDownEdit" TextAlign="TextAlign.Center" IsPrimaryKey="true" Width="100">
+            <EditTemplate>
+                <SfDropDownList ID="Corpdw" Placeholder="사업장코드선택" TValue="string" TItem="DwCodeval" Enabled="@Enabled_CorpCd" @bind-Value="@((context as CCodeInfo_sql).CorpCd)" DataSource="@corpList">
+                    <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </EditTemplate>
+        </GridColumn>
+
+        <GridColumn Field="@nameof(CCodeInfo_sql.ManageNM)" HeaderText="그룹코드" EditType="EditType.DropDownEdit" TextAlign="TextAlign.Center" IsPrimaryKey="true" Width="100">
+            <EditTemplate>
+                <SfDropDownList ID="Managedw" Placeholder="그룹코드선택" TValue="string" TItem="DwCodeval" Enabled="@Enabled_ManageCd" @bind-Value="@((context as CCodeInfo_sql).ManageCd)" DataSource="@gCodeList">
+                    <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                    <DropDownListEvents TValue="string" TItem="DwCodeval" ValueChange="(args)=> {  ValueChange_code_manage(args, context as CCodeInfo_sql); }"></DropDownListEvents>
+                </SfDropDownList>
+            </EditTemplate>
+        </GridColumn>
+
+        <GridColumn Field="@nameof(CCodeInfo_sql.CodeCd)" HeaderText="코드" EditType="EditType.DefaultEdit" IsPrimaryKey="true"
+                    TextAlign="TextAlign.Center" Width="100" ValidationRules="@(new ValidationRules{Required=true, MaxLength=6})">
+            <EditTemplate>
+                <SfTextBox ID="CustCodeCd" HtmlAttributes="@(new Dictionary<string, object>() { { "maxlength", 6 } })" Enabled="@Enabled_CodeCd" @bind-Value="@((context as CCodeInfo_sql).CodeCd)"></SfTextBox>
+            </EditTemplate>
+        </GridColumn>
+
+        <GridColumn Field="@nameof(CCodeInfo_sql.CodeNm)" HeaderText="코드명" TextAlign="TextAlign.Center" Width="120"></GridColumn>
+        <GridColumn Field="@nameof(CCodeInfo_sql.Codevar1)" HeaderText="코드값1" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+        <GridColumn Field="@nameof(CCodeInfo_sql.Codevar2)" HeaderText="코드값2" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+        <GridColumn Field="@nameof(CCodeInfo_sql.Codeint1)" HeaderText="코드숫자1" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+        <GridColumn Field="@nameof(CCodeInfo_sql.Codeint2)" HeaderText="코드숫자2" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+        <GridColumn Field="@nameof(CCodeInfo_sql.User_yn)" HeaderText="사용여부" EditType="EditType.DropDownEdit" TextAlign="TextAlign.Center" Width="100">
+            <EditTemplate>
+                <SfDropDownList ID="CodeUser_yn" Placeholder="사용여부선택" TValue="string" TItem="DwCodeval" @bind-Value="@((context as CCodeInfo_sql).User_yn)" DataSource="@_YNList">
+                    <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </EditTemplate>
+        </GridColumn>
+        <GridColumn Field="@nameof(CCodeInfo_sql.Bigo)" HeaderText="비고" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+
+    </GridColumns>
+</SfGrid>
+
+@code {
+    // 무조건 추가
+    CommonList commonList = new CommonList();
+
+    public string getCodeCd { get; set; }
+
+    public SfGrid<CCodeInfo_sql> code_grid;
+
+    // 공통 그리드 툴바
+    public string[] ToolbarItems = new string[] { "Add", "Edit", "Delete", "Update", "Cancel", "ColumnChooser" };
+
+    // 사업장코드 Dw 리스트
+    public IEnumerable<DwCodeval> corpList { get; set; }
+    // 그룹코드 Dw 리스트
+    public IEnumerable<DwCodeval> gCodeList { get; set; }    
+
+    // 코드데이터 리스트
+    public IEnumerable<CCodeInfo_sql>? codes { get; set; } // 기준정보 그리드 사용
+
+    //컬럼 항목의 사용여부
+    public bool Enabled_CorpCd = true; // 기준정보 사업장코드
+    public bool Enabled_ManageCd = true; // 기준정보 그룹코드
+    public bool Enabled_CodeCd = true;
+
+    List<DwCodeval> _YNList;
+
+    protected override void OnInitialized()
+    {
+        _YNList = commonList.CommDropdownYN();
+        codes = codeinfo_service.SelectAll_SQL();
+    }
+
+    //기준정보의 상단 버튼 누르면 발생하는 이벤트
+    public void ActionBeginHandler_code(ActionEventArgs<CCodeInfo_sql> args)
+    {
+        // 기준정보에서 추가 했을때...
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Add) || args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.BeforeBeginEdit))
+        {
+            DBConnection dbconn = new ("sortech_SQLSERVER");
+
+            using (SqlConnection connection = new (dbconn.ConnectionString))
+            {
+                // 사업장 코드 DW
+                string queryString = "SELECT codeCD, codeNM FROM SortechSQL..CodeInfo WHERE CorpCD = '100001' AND ManageCD = '1000' ";
+                SqlDataAdapter adapter = new (queryString, connection);
+                DataSet dt = new DataSet();
+                try
+                {
+                    connection.Open();
+                    adapter.Fill(dt);// using sqlDataAdapter we process the query string and fill the data into dataset
+                }
+                catch (SqlException se)
+                {
+                    Console.WriteLine(se.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+
+                corpList = dt.Tables[0].AsEnumerable().Select(r => new DwCodeval
+                    {
+                        Name = r.Field<string>("codeNM"),
+                        Code = r.Field<string>("codeCD")
+                    }
+                ).ToList();  // here we convert dataset into list
+
+                // 그룹코드 DW
+                queryString = "SELECT ManageCD AS codeCD, ManageNM AS codeNM FROM SortechSQL..GroupCodeInfo WHERE User_yn = 'Y' ";
+                adapter = new (queryString, connection);
+                dt = new DataSet();
+                try
+                {
+                    connection.Open();
+                    adapter.Fill(dt);// using sqlDataAdapter we process the query string and fill the data into dataset
+                }
+                catch (SqlException se)
+                {
+                    Console.WriteLine(se.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+
+                gCodeList = dt.Tables[0].AsEnumerable().Select(r => new DwCodeval
+                    {
+                        Name = r.Field<string>("codeNM"),
+                        Code = r.Field<string>("codeCD")
+                    }
+                ).ToList();
+            }
+
+            if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Add))
+                args.Data.User_yn = "Y";
+
+            Enabled_ManageCd = true;
+            Enabled_CorpCd = true;
+
+            if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.BeforeBeginEdit))
+            {
+                Enabled_ManageCd = false;
+                Enabled_CorpCd = false;
+                //Enabled_CodeCd = false;
+            }
+        }
+
+        else if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save))
+        {
+            if (args.Action == "Add")
+                // EF 기본
+                //codeinfo_service.Insert(args.Data);
+                // EF 쿼리사용
+                codeinfo_service.Insert_SQL(args.Data);
+            else if (args.Action == "Edit")
+                //codeinfo_service.Update(args.Data.CorpCd, args.Data.ManageCd, args.Data);
+                codeinfo_service.Update_SQL(args.Data);
+        }
+        else if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Delete))
+            //codeinfo_service.Delete(args.Data.CorpCd, args.Data.ManageCd);
+            codeinfo_service.Delete_SQL(args.Data);
+    }
+
+    //기준정보그룹의 ActionBeginHandler_group 실행 후 실행
+    // 
+    public void ActionCompleteHandler_code(ActionEventArgs<CCodeInfo_sql> args)
+    {
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save) || args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Delete))
+        {
+            codes = codeinfo_service.SelectAll_SQL();
+        }
+    }
+
+    public void ValueChange_code_manage(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, DwCodeval> args, CCodeInfo_sql codeinfo)
+    {
+        // 최대값 가져오기.
+        DBConnection dbconn = new DBConnection("sortech_SQLSERVER");
+
+        code_grid.PreventRender(false);
+
+        //var RowIndex = await code_grid.GetCurrentViewRecords();
+
+        using (SqlConnection connection = new (dbconn.ConnectionString))
+        {
+            try
+            {
+                connection.Open();
+                string queryString = string.Format(@"SELECT FORMAT(ISNULL(MAX(CODECD), 0) + 1, 'D6') AS MAXCODECD
+                                                     FROM [sortech].[dbo].[CodeInfo] 
+                                                     WHERE CorpCD = '{0}' AND ManageCD = '{1}'", codeinfo.CorpCd, args.Value);
+
+                SqlCommand comm = new (queryString, connection);
+
+                //args.V .ManageCd = comm.ExecuteScalar().ToString();
+                getCodeCd = comm.ExecuteScalar().ToString();
+                Enabled_CodeCd = false;                
+            }
+            catch (SqlException se)
+            {
+                Console.WriteLine(se.ToString());
+                throw;
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+    }
+}

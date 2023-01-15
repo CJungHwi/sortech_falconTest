@@ -1,0 +1,232 @@
+﻿@page "/comm/Empinfo"
+@using Microsoft.Data.SqlClient
+@*@using Syncfusion.Blazor
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.QueryBuilder*@
+@using Sortech.Model_SqlServerDB
+@using Sortech.Common
+@using Sortech.DBConn
+@using System.Data
+@using System.Dynamic
+@using static Sortech.Common.CommonList
+@inject IRepository_EmpInfo empinfo_service
+
+<h3>사원정보</h3>
+
+<div class="col-lg-12 control-section">
+    @*<SfButton CssClass="e-primary" @OnClick="AddRules">조회추가</SfButton>*@
+    <SfQueryBuilder @ref="QueryBuilderObj" TValue="CEmpInfo_proc" DataSource="@emplist" AllowValidation="false">
+        <QueryBuilderRule Condition="and" Rules="@rules"></QueryBuilderRule>
+        <QueryBuilderEvents TValue="CEmpInfo_proc" Created="created" RuleChanged="updateRule"></QueryBuilderEvents>
+        <QueryBuilderColumns>
+            <QueryBuilderColumn Field="Empid" Label="사번" Type="Syncfusion.Blazor.QueryBuilder.ColumnType.String"></QueryBuilderColumn>
+            <QueryBuilderColumn Field="Loginid" Label="로그인ID" Type="Syncfusion.Blazor.QueryBuilder.ColumnType.String"></QueryBuilderColumn>
+            <QueryBuilderColumn Field="EmpNm" Label="임직원명" Type="Syncfusion.Blazor.QueryBuilder.ColumnType.String"></QueryBuilderColumn>
+            <QueryBuilderColumn Field="DeptNm" Label="부서명" Type="Syncfusion.Blazor.QueryBuilder.ColumnType.String"></QueryBuilderColumn>
+            <QueryBuilderColumn Field="GradeNm" Label="직위" Type="Syncfusion.Blazor.QueryBuilder.ColumnType.String"></QueryBuilderColumn>
+            <QueryBuilderColumn Field="Leave" Label="퇴사여부" Type="Syncfusion.Blazor.QueryBuilder.ColumnType.String"></QueryBuilderColumn>
+        </QueryBuilderColumns>
+    </SfQueryBuilder>
+</div>
+
+<SfGrid @ref="emp_grid" DataSource="@emplistfilt" AllowPaging="true" AllowSorting="true" AllowFiltering="false" AllowGrouping="false" ShowColumnChooser="true" Toolbar=@ToolbarItems
+        AllowResizing="true" AllowReordering="true" ShowColumnMenu="true">
+    <GridPageSettings PageSize="20"></GridPageSettings>
+    <GridEditSettings AllowAdding="true" AllowDeleting="true" AllowEditing="true" Mode="EditMode.Normal" ShowConfirmDialog="true" ShowDeleteConfirmDialog="true"></GridEditSettings>
+    <GridEvents OnActionBegin="ActionBegin_emp" OnActionComplete="ActionComplete_emp" TValue="CEmpInfo_proc" Created="created"></GridEvents>
+    <GridColumns>
+        <GridColumn Field="@nameof(CEmpInfo_proc.Empid)" HeaderText="사번" IsPrimaryKey="true" TextAlign="TextAlign.Center" Width="120" ValidationRules="@(new ValidationRules{Required=true, MinLength=8})">
+            <EditTemplate>
+                <SfTextBox ID="txt_Empid" HtmlAttributes="@(new Dictionary<string, object>() { { "maxlength", 8 } })" Enabled="@Enabled_Empid" @bind-Value="@((context as CEmpInfo_proc).Empid)"></SfTextBox>
+            </EditTemplate>
+        </GridColumn>
+        <GridColumn Field="@nameof(CEmpInfo_proc.Loginid)" HeaderText="로그인ID" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+        <GridColumn Field="@nameof(CEmpInfo_proc.Password)" HeaderText="비밀번호" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+        <GridColumn Field="@nameof(CEmpInfo_proc.EmpNm)" HeaderText="성명" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+        <GridColumn Field="@nameof(CEmpInfo_proc.Birthday)" HeaderText="생년월일" Format="yyyy-MM-dd" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+        <GridColumn Field="@nameof(CEmpInfo_proc.DeptNm)" HeaderText="부서" TextAlign="TextAlign.Center" EditType="EditType.DropDownEdit" Width="100">
+            <EditTemplate>
+                <SfDropDownList ID="dl_Dept" Placeholder="부서선택" TValue="string" TItem="DwCodeval" FloatLabelType="Syncfusion.Blazor.Inputs.FloatLabelType.Always"
+                                @bind-Value="@((context as CEmpInfo_proc).Dept)" DataSource="@DeptList">
+                    <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </EditTemplate>
+        </GridColumn>
+        <GridColumn Field="@nameof(CEmpInfo_proc.GradeNm)" HeaderText="직위" TextAlign="TextAlign.Center" EditType="EditType.DropDownEdit" Width="100">
+            <EditTemplate>
+                <SfDropDownList ID="dl_Grade" Placeholder="직위선택" TValue="string" TItem="DwCodeval" FloatLabelType="Syncfusion.Blazor.Inputs.FloatLabelType.Always"
+                                @bind-Value="@((context as CEmpInfo_proc).Grade)" DataSource="@GradeList">
+                    <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </EditTemplate>
+        </GridColumn>
+        <GridColumn Field="@nameof(CEmpInfo_proc.Leave)" HeaderText="퇴사여부" EditType="EditType.DropDownEdit" TextAlign="TextAlign.Center" Width="100">
+            <EditTemplate>
+                <SfDropDownList ID="LeaveYN" Placeholder="퇴사여부선택" TValue="string" TItem="DwCodeval" FloatLabelType="Syncfusion.Blazor.Inputs.FloatLabelType.Always"
+                                Enabled="@Enabled_Leave" @bind-Value="@((context as CEmpInfo_proc).Leave)" DataSource="@_leave">
+                    <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </EditTemplate>
+        </GridColumn>
+
+    </GridColumns>
+</SfGrid>
+
+@code {
+
+    CommonList commonList = new CommonList();
+
+    public SfGrid<CEmpInfo_proc>? emp_grid;
+    SfQueryBuilder<CEmpInfo_proc> QueryBuilderObj;
+
+    // 공통 그리드 툴바
+    public string[] ToolbarItems = new string[] { "Add", "Edit", "Delete", "Update", "Cancel", "ColumnChooser" };
+
+    // 코드데이터 리스트
+    public IEnumerable<CEmpInfo_proc>? emplist { get; set; } // 기준정보 그리드 사용
+    public IEnumerable<CEmpInfo_proc>? emplistfilt { get; set; } // 기준정보그룹 그리드 사용
+
+    List<RuleModel> rules = new()
+    {
+        new RuleModel {Field="EmpNm", Label="성명", Type="String", Operator="contains", Value=""}
+    };
+
+    private void AddRules()
+    {
+        QueryBuilderObj.SetRules(rules);
+    }
+
+    private void created()
+    {
+        emplistfilt = QueryBuilderObj.GetFilteredRecords().ToList().AsEnumerable<CEmpInfo_proc>();
+    }
+
+    private void updateRule(Syncfusion.Blazor.QueryBuilder.RuleChangeEventArgs args)
+    {
+        if (QueryBuilderObj.GetValidRules().Rules.Count > 0)
+        {
+            emplistfilt = QueryBuilderObj.GetFilteredRecords().ToList().AsEnumerable<CEmpInfo_proc>();
+        }
+        else
+        {
+            emplistfilt = emplist;
+        }
+        StateHasChanged();
+    }
+
+    // 부서 Dw 리스트
+    public IEnumerable<DwCodeval> DeptList { get; set; }
+    // 직위 Dw 리스트
+    public IEnumerable<DwCodeval> GradeList { get; set; }
+
+    //컬럼 항목의 사용여부
+    public bool Enabled_Empid = true; // 사번
+    public bool Enabled_Leave = true; // 퇴사여부
+
+    List<DwCodeval> _leave;
+
+    // 그리드 선택시 row index
+    private double RowIndex { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _leave = commonList.CommDropdownYN();
+        emplist = empinfo_service.Select_proc();
+        //emplistfilt = empinfo_service.Select_proc();
+    }
+
+    //기준정보의 상단 버튼 누르면 발생하는 이벤트
+    public void ActionBegin_emp(ActionEventArgs<CEmpInfo_proc> args)
+    {
+        // 사원정보에서 추가 했을때...
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Add) || args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.BeforeBeginEdit))
+        {
+            DBConnection dbconn = new("sortech_SQLSERVER");
+
+            using (SqlConnection connection = new(dbconn.ConnectionString))
+            {
+                // 부서 코드 DW
+                string queryString = "SELECT codeCD, codeNM FROM SortechSQL..CodeInfo WHERE CorpCD = '100001' AND ManageCD = '1003' ";
+                SqlDataAdapter adapter = new(queryString, connection);
+                DataSet dt = new DataSet();
+                try
+                {
+                    connection.Open();
+                    adapter.Fill(dt);// using sqlDataAdapter we process the query string and fill the data into dataset
+                }
+                catch (SqlException se)
+                {
+                    Console.WriteLine(se.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+
+                DeptList = dt.Tables[0].AsEnumerable().Select(r => new DwCodeval
+                    {
+                        Name = r.Field<string>("codeNM"),
+                        Code = r.Field<string>("codeCD")
+                    }
+                ).ToList();  // here we convert dataset into list
+
+                // 그룹코드 DW
+                queryString = "SELECT codeCD, codeNM FROM SortechSQL..CodeInfo WHERE CorpCD = '100001' AND ManageCD = '1002' ";
+                adapter = new(queryString, connection);
+                dt = new DataSet();
+                try
+                {
+                    connection.Open();
+                    adapter.Fill(dt);// using sqlDataAdapter we process the query string and fill the data into dataset
+                }
+                catch (SqlException se)
+                {
+                    Console.WriteLine(se.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+
+                GradeList = dt.Tables[0].AsEnumerable().Select(r => new DwCodeval
+                    {
+                        Name = r.Field<string>("codeNM"),
+                        Code = r.Field<string>("codeCD")
+                    }
+                ).ToList();
+            }
+
+            if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Add))
+                args.Data.Leave = "N";
+
+            Enabled_Leave = false;
+
+            if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.BeforeBeginEdit))
+            {
+                Enabled_Leave = true;
+                Enabled_Empid = false;
+            }
+        }
+
+        else if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save))
+        {
+            if (args.Action == "Add")
+                empinfo_service.Insert_proc(args.Data);
+            else if (args.Action == "Edit")
+                empinfo_service.Update_proc(args.Data);
+        }
+        else if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Delete))
+            empinfo_service.Delete_proc(args.Data);
+    }
+
+    //기준정보그룹의 ActionBeginHandler_group 실행 후 실행
+    public void ActionComplete_emp(ActionEventArgs<CEmpInfo_proc> args)
+    {
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save) || args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Delete))
+        {
+            emplist = empinfo_service.Select_proc();
+            //emplistfilt = empinfo_service.Select_proc();
+        }
+    }
+}

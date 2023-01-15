@@ -1,0 +1,221 @@
+﻿@page "/Component/Inputs"
+
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+
+<h3>Inputs</h3>
+
+@* -Inputs
+   1. SfTextBox 기본 
+   2. FloatLabelType 속성 : Always, Auto, Never
+   3~5. multiline : 
+
+   -SfSlider (범위 슬라이더) :
+     SliderTicks : 작은 눈금 / LargeStep : 큰 눈금, SmallStep : 작은 눈금
+     SliderTooltip : 막대를 클릭하거나 움직이면 값을 나타낸다
+   -CheckBox
+     체크박스 : 일반 체크박스
+     체크박스 컬러 : css를 사용하여 체크박스 클릭시 색상 지정
+
+   -파일 업로드
+     시작하기에서 1개만 된다
+     비동기부분은 안된다.
+*@
+
+@* Buttons
+
+
+*@
+<h5>기본 텍스트 박스</h5>
+<SfTextBox Placeholder='Name'></SfTextBox>
+
+<SfTextBox Placeholder='Name' FloatLabelType='@FloatLabelType.Auto'></SfTextBox>
+
+<hr />
+
+<h5>플로트 멀티박스</h5>
+<label>Float label type as Auto</label>
+<div class="multiline">
+    <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" Placeholder="Enter your address"></SfTextBox>
+</div>
+
+<label>Float label type as Always</label>
+<div class="multiline">
+    <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Always" Placeholder="Enter your address"></SfTextBox>
+</div>
+
+<label>Float label type as Never</label>
+<div class="multiline">
+    <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Never" Placeholder="Enter your address"></SfTextBox>
+</div>
+
+<hr />
+
+<h5>파일 업로드</h5>
+
+@*저장 및 제거 작업*@
+<SfUploader AutoUpload="false">
+    <UploaderEvents ValueChange="OnChange"></UploaderEvents>
+</SfUploader>
+
+@*비동기*@
+@*여러 파일*@
+<SfUploader ID="UploadFiles">
+    <UploaderAsyncSettings SaveUrl="api/SampleData/Save" RemoveUrl="api/SampleData/Remove">
+    </UploaderAsyncSettings>
+</SfUploader>
+
+@*단일 파일*@
+<SfUploader ID="UploadFiles" AllowMultiple=false>
+    <UploaderAsyncSettings SaveUrl="api/SampleData/Save" RemoveUrl="api/SampleData/Remove">
+    </UploaderAsyncSettings>
+</SfUploader>
+
+@*자동*@
+<SfUploader ID="UploadFiles" AllowMultiple=false AutoUpload=false>
+    <UploaderAsyncSettings SaveUrl="api/SampleData/Save" RemoveUrl="api/SampleData/Remove">
+    </UploaderAsyncSettings>
+</SfUploader>
+
+@*순차적*@
+<SfUploader ID="UploadFiles" SequentialUpload=true AutoUpload=false>
+    <UploaderAsyncSettings SaveUrl="api/SampleData/Save" RemoveUrl="api/SampleData/Remove">
+    </UploaderAsyncSettings>
+</SfUploader>
+
+<hr />
+
+<h5>슬라이더</h5>
+<SfSlider @bind-Value="@value" Width="50%">
+    <SliderTicks Placement="Placement.After" ShowSmallTicks="true" LargeStep="10" SmallStep="5"></SliderTicks>
+    <SliderTooltip IsVisible="true" ShowOn="TooltipShowOn.Always" Placement="TooltipPlacement.Before"></SliderTooltip>
+</SfSlider>
+<div>값 : @value </div>
+
+<hr />
+
+<h5>Buttons</h5>
+
+<div>성별</div>   
+<SfRadioButton Label="남자" Name="options" Value="card" @bind-Checked="stringChecked"></SfRadioButton>
+<SfRadioButton Label="여자" Name="options" Value="cash" @bind-Checked="stringChecked"></SfRadioButton>
+
+<hr />
+
+<h5>CheckBox</h5>
+
+<div>체크박스</div>
+<SfCheckBox @bind-Checked="isChecked" Label="Checked State"></SfCheckBox><br />
+<SfCheckBox @bind-Checked="isUnChecked" Label="Unchecked State"></SfCheckBox><br />
+<SfCheckBox @bind-Checked="isMediateChecked" Indeterminate="true" Label="Intermediate State"></SfCheckBox>
+
+<div>체크박스 컬러</div>
+<SfCheckBox @bind-Checked="isPrimaryChecked" Label="Primary" CssClass="e-primary"></SfCheckBox>
+<br />
+<SfCheckBox @bind-Checked="isSuccessChecked" Label="Success" CssClass="e-success"></SfCheckBox>
+<br />
+<SfCheckBox @bind-Checked="isInfoChecked" Label="Info" CssClass="e-info"></SfCheckBox>
+<br />
+<SfCheckBox @bind-Checked="isWarningChecked" Label="Warning" CssClass="e-warning"></SfCheckBox>
+<br />
+<SfCheckBox @bind-Checked="isDangerChecked" Label="Danger" CssClass="e-danger"></SfCheckBox>
+
+<hr />
+
+<h5>Toggle Switch Box</h5>
+<SfSwitch @bind-Checked="isChecked2" OnLabel="On" OffLabel="Off"></SfSwitch>
+
+
+@code {
+    //슬라이더 부분
+    int value = 30;
+
+    //버튼-성별
+    private string stringChecked = "cash";
+    //버튼-체크박스
+    private bool isChecked = true;
+    private bool isUnChecked = false;
+    private bool isMediateChecked = false;
+
+    //체크박스- 컬러
+    private bool isPrimaryChecked = true;
+    private bool isSuccessChecked = true;
+    private bool isInfoChecked = true;
+    private bool isWarningChecked = true;
+    private bool isDangerChecked = true;
+
+    //토글 스위치
+    private bool isChecked2 = true;
+
+    //파일 업로드
+    private void OnChange(UploadChangeEventArgs args)
+    {
+        foreach (var file in args.Files)
+        {
+            var path = @"path" + file.FileInfo.Name;
+            FileStream filestream = new FileStream(path, FileMode.Create, FileAccess.Write);
+            file.Stream.WriteTo(filestream);
+            filestream.Close();
+            file.Stream.Close();
+        }
+    }
+}
+
+
+<style>
+    .multiline {
+        margin-top: 30px;
+        width: 20%;
+    }
+
+    .e-search::before {
+        content: '\e993';
+        font-family: e-icons;
+    }
+
+    #wrapper {
+        width: 30%;
+    }
+
+    /*체크박스 컬러*/
+    .e-checkbox-wrapper.e-primary:hover .e-frame.e-check { /* csslint allow: adjoining-classes */
+        background-color: #e03872;
+    }
+
+    .e-checkbox-wrapper.e-success .e-frame.e-check,
+    .e-checkbox-wrapper.e-success .e-checkbox:focus + .e-frame.e-check { /* csslint allow: adjoining-classes */
+        background-color: #689f38;
+    }
+
+    .e-checkbox-wrapper.e-success:hover .e-frame.e-check { /* csslint allow: adjoining-classes */
+        background-color: #449d44;
+    }
+
+    .e-checkbox-wrapper.e-info .e-frame.e-check,
+    .e-checkbox-wrapper.e-info .e-checkbox:focus + .e-frame.e-check { /* csslint allow: adjoining-classes */
+        background-color: #2196f3;
+    }
+
+    .e-checkbox-wrapper.e-info:hover .e-frame.e-check { /* csslint allow: adjoining-classes */
+        background-color: #0b7dda;
+    }
+
+    .e-checkbox-wrapper.e-warning .e-frame.e-check,
+    .e-checkbox-wrapper.e-warning .e-checkbox:focus + .e-frame.e-check { /* csslint allow: adjoining-classes */
+        background-color: #ef6c00;
+    }
+
+    .e-checkbox-wrapper.e-warning:hover .e-frame.e-check { /* csslint allow: adjoining-classes */
+        background-color: #cc5c00;
+    }
+
+    .e-checkbox-wrapper.e-danger .e-frame.e-check,
+    .e-checkbox-wrapper.e-danger .e-checkbox:focus + .e-frame.e-check { /* csslint allow: adjoining-classes */
+        background-color: #d84315;
+    }
+
+    .e-checkbox-wrapper.e-danger:hover .e-frame.e-check { /* csslint allow: adjoining-classes */
+        background-color: #ba3912;
+    }
+</style>
